@@ -12,7 +12,7 @@ import {
   TextField,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { EmailOutlined, AddLocationAltOutlined } from "@mui/icons-material";
+import { EmailOutlined, AddLocationAltOutlined, Email } from "@mui/icons-material";
 
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import AlternateEmailIcon from "@mui/icons-material/AlternateEmail";
@@ -41,8 +41,8 @@ const useStyles = makeStyles((theme: any) => ({
     background: "#fbf1f1",
     padding: "37px",
     "@media (max-width: 420px)": {
-      marginTop: '20px !important'
-    }
+      marginTop: "20px !important",
+    },
   },
   editBtn: {
     width: "100%",
@@ -53,8 +53,7 @@ const useStyles = makeStyles((theme: any) => ({
     borderRadius: "10px !important",
     margin: "160px 0 0 0 !important",
     "@media (max-width: 420px)": {
-
-        margin: "30px 0px !important",
+      margin: "30px 0px !important",
     },
   },
   customGrid: {
@@ -85,6 +84,11 @@ const useStyles = makeStyles((theme: any) => ({
   textWrapper: {
     margin: "0 25px 25px 0",
   },
+  errorMessage: {
+    color: "red"
+
+  },
+  
   updateBtn: {
     margin: "0 200px",
     "@media (max-width: 420px)": {
@@ -103,6 +107,8 @@ function App() {
   const [loader, setLoader] = useState<Boolean>(false);
   const [selectedUser, setSelectedUser] = useState<userType | any>();
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [error, setError] = useState<userType | any>();
+ 
   function stringToColor(string: string) {
     let hash = 0;
     let i;
@@ -155,6 +161,8 @@ function App() {
   };
 
   const updateUser = () => {
+    const {firstName, lastName, email, city} = error;
+    if((!firstName && !lastName && !email && !city)) {
     updateUserService(selectedUser)
       .then((response) => {
         if (response.data && response.data.code == "500") {
@@ -168,14 +176,29 @@ function App() {
         alert(err);
         setLoader(false);
       });
+    } else {
+      alert('Something went wrong!!!')
+    }
   };
 
   const editUser = (user: userType | undefined) => {
     setIsEditing(true);
     setSelectedUser(user);
   };
+  const regName = /^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$/;
+  const regEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
   const onUserChange = (e: any) => {
     const { name, value } = e.target;
+    if(value === '')
+      setError({ ...error, [name]: `${name} is required.`});
+    else if((name==='firstName' || name === 'lastName') && !regName.test(value))   
+      setError({ ...error, [name]: `${name} is invalid.`});    
+    else if(name === 'email' && !regEmail.test(value))
+      setError({ ...error, [name]: `${name} is invalid.`});    
+    else
+      setError({ ...error, [name]: "" });
+    
     setSelectedUser({ ...selectedUser, [name]: value });
   };
   return (
@@ -258,6 +281,7 @@ function App() {
               value={selectedUser?.firstName || ""}
               className={classes.fullText}
             />
+            <span className={classes.errorMessage}>{error?.firstName}</span>
           </Grid>
           <Grid md={6} className={classes.textWrapper}>
             <TextField
@@ -269,6 +293,7 @@ function App() {
               value={selectedUser?.lastName || ""}
               className={classes.fullText}
             />
+            <span className={classes.errorMessage}>{error?.lastName}</span>
           </Grid>
           <Grid md={6} className={classes.textWrapper}>
             <TextField
@@ -280,6 +305,7 @@ function App() {
               value={selectedUser?.email || ""}
               className={classes.fullText}
             />
+            <span className={classes.errorMessage}>{error?.email}</span>
           </Grid>
           <Grid md={6} className={classes.textWrapper}>
             <TextField
@@ -291,6 +317,7 @@ function App() {
               value={selectedUser?.city || ""}
               className={classes.fullText}
             />
+            <span className={classes.errorMessage}>{error?.city}</span>
           </Grid>
           <Grid md={12} className={classes.updateBtn}>
             <Button className={classes.editBtn} onClick={() => updateUser()}>
