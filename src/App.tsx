@@ -139,7 +139,7 @@ function App() {
   }
 
   useEffect(() => {
-    fetchUser(10);
+    fetchUser(1);
   }, []);
 
   const fetchUser = (id: number | undefined) => {
